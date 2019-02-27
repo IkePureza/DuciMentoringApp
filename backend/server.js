@@ -3,11 +3,19 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 
+import registerApiResponseHandlers from './util/api/apiResponseHandlers';
+import sanitizeMiddleware from './util/api/sanitizeMiddleware';
+
 const app = express();
 
 app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
+
+app.use(sanitizeMiddleware);
+
+
+registerApiResponseHandlers(express);
 
 // load routes
 const apiRouter = require('./routes/api.route');
