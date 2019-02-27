@@ -12,7 +12,7 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 
-app.use(sanitizeMiddleware);
+// app.use(sanitizeMiddleware);
 
 
 registerApiResponseHandlers(express);

@@ -5,27 +5,16 @@ const asyncHandler = require('express-async-handler');
 
 import * as authController from '../../controllers/auth.controller';
 
-const controllerHandler = require('../../util/controllerHandler');
-const c = controllerHandler;
+// const controllerHandler = require('../../util/controllerHandler');
+import controllerHandler from '../../util/controllerHandler';
 
-// router.post('/login', c(authController.login, (req, res, next) => [req])); 
+router.post('/login', controllerHandler(authController.login, (req, res, next) => [req])); 
 
-router.post('/login',  
-asyncHandler(async (req, res, next) => {
-  try {
-      const loginDetails = await authController.login(req);
+router.post('/forgot-password', controllerHandler(authController.forgotPassword, (req, res, next) => [req])); 
 
-      return res.ok(loginDetails);
-  } catch (e) {
-      return res.handleError(e);
-  }
-}));
+router.post('/reset-password', controllerHandler(authController.resetPassword, (req, res, next) => [req])); 
 
-router.post('/forgot-password', c(authController.forgotPassword, (req, res, next) => [req])); 
-
-router.post('/reset-password', c(authController.resetPassword, (req, res, next) => [req])); 
-
-router.post('/logout', c(authController.logout, (req, res, next) => [req])); 
+router.post('/logout', controllerHandler(authController.logout, (req, res, next) => [req])); 
 
 /* Todo
   Refresh token 

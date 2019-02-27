@@ -1,4 +1,7 @@
 import UserModel from '../models/user.model';
+import DuciError from '../util/api/duciError';
+import ERROR_TYPES from '../util/constants/errorTypes';
+const errorTypes = ERROR_TYPES ;
 
 export async function findOne(firstName) {
     const user = await UserModel.find({firstName}).exec();
@@ -6,9 +9,8 @@ export async function findOne(firstName) {
 }
 
 export async function create(req) {
-
-    const user = await UserModel.findOne({"email": req.body.email}, (err, user) => {if(err) return null});
-    if (user) return  Promise.reject("Email already in use");
+    const user = await UserModel.duciFindOne(req , {"email": req.body.email});
+    if (user) return  Promise.reject(new DuciError(errorTypes.badRequest.unknown, "This Email is already in use"));
     
     let data = req.body;
     let newUser = await UserModel.duciCreate(req, data);
@@ -25,30 +27,21 @@ export async function update(req) {
     const userId = req.id; 
     console.log(req.id);
     // TODP: do this async way
-    let user =  User.findById(userId, (err, user) => {
-        if (!user){
-            console.log("failed " + userId);
-            return next(new Error('Could not load document'));
-        }else {
+    let user =  User.duciFindById(req, userId);
 
-            const user = UserModel.findOne({"email": req.email}, (err, user) => {if(err) return null}); //implement await
-            if (user) return  Promise.reject("Email already in use");
+    if (!user){
+        return Promise.reject(new DuciError(errorTypes.notFound, 'User'));
+    }else {
 
-            if(req.firstName) user.firstName = req.firstName;
-            if(req.lastName) user.lastName = req.lastName;
-            if(req.email) user.email = req.email;
-            
-
-            console.log("Updated User: " + user)
-
-            user.save() // implement await
-            
-            return user;  
-        }
-    });
-    // Todo return updated user instead of OK.
-    console.log("returning" + user)
-    return user;
+        const user = await UserModel.duciFindOne(req, {"email": req.email}); //implement await
+        if (user) return  Promise.reject(new DuciError(errorTypes.badRequest.unknown, "This Email is already in use"));
+        if(req.firstName) user.firstName = req.firstName;
+        if(req.lastName) user.lastName = req.lastName;
+        if(req.email) user.email = req.email;
+        await user.save() // implement await
+        
+        return user;  
+    }
 }
 
 export async function findAndDelete(userId) {
