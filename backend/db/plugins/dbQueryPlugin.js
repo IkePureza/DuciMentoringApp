@@ -1,4 +1,6 @@
 import Moment from 'moment';
+import duciError from '../../util/api/duciError';
+import errorTypes from '../../util/constants/errorTypes';
 
 export default function ( schema, optionsItem){
 
@@ -20,7 +22,7 @@ export default function ( schema, optionsItem){
         try {
             document = await this.findOne(query, selection);
         } catch (e) {
-            return Promise.reject(e);
+            return Promise.reject(new duciError(errorTypes.notFound, this.modelName));
         }
 
         return document;

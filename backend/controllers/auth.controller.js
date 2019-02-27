@@ -6,6 +6,9 @@ import SessionArchiveModel from '../models/sessionArchive.model'
 import PasswordResetTokenModel from '../models/passwordResetToken.model';
 import * as jwtHelper from '../util/jwtHelper';
 import Moment from 'moment';
+import DuciError from '../util/api/duciError';
+//const DuciError = require('../util/api/duciError');
+import * as errorTypes from '../util/constants/errorTypes';
 
 
 export async function login(req){    
@@ -13,9 +16,9 @@ export async function login(req){
     const {email, password, remember, source, browser, device, osVersion, isMobile, isTablet, isDesktop} = req.body;
 
     const user = await UserModel.duciFindOne(req, {email}, '_id email +password');
-    console.log(user);
+    console.log(errorTypes);
 
-    if (!user) return  Promise.reject("wrong email");
+    if (!user) return  Promise.reject(new DuciError(errorTypes.notFound, "this email"));
     
     const result = await user.comparePassword(password);
 
@@ -124,6 +127,7 @@ export async function logout(req){
         return Promise.reject("invalid session token");
     }
     console.log(session.createdAt);
+    
     // Create a new session archive
     await SessionArchiveModel.duciCreate(req, {
         user: session.user,
