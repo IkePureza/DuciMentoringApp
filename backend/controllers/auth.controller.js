@@ -56,12 +56,12 @@ export async function login(req){
 export async function forgotPassword(req){
     const {email, answer} = req.body;
     const user = await UserModel.duciFindOne(req, {email}, '_id email +backgroundAnswer');
-    if (!user) return  Promise.reject("sorry there are no accounts under this email");
+    if (!user) return  Promise.reject(new DuciError(errorTypes.notFound, "User was"));
 
     const result = await user.compareAnswer(answer);
 
     if (result.err || !result.isMatch) {
-        return Promise.reject("wrong credidantials");
+        return Promise.reject(new DuciError(errorTypes.unauthorised.wrongCredentials));
     }
 
     const token = jwtHelper.generateJWT(req, user);
@@ -74,7 +74,7 @@ export async function forgotPassword(req){
     });
     console.log(newPasswordResetToken);
     
-    if (!newPasswordResetToken) return Promise.reject("Failed to genereate token");
+    if (!newPasswordResetToken) return Promise.reject(new DuciError(errorTypes.internalServerError, 'Failed to generate token'));
     
     // Todo Duci Mail: reset password through the mail
     console.log(link);
@@ -84,35 +84,24 @@ export async function forgotPassword(req){
 
 export async function resetPassword(req){
     const {token, newPassword} = req.body;
-    console.log("token here:  " + token);
         
     let tokenDocument = await PasswordResetTokenModel.duciFindOne(req, {token});
 
-    console.log("1");
-    
-
     if (!tokenDocument) {
-        return Promise.reject("invalid token");
+        return Promise.reject(new SquizError(errorTypes.unauthorised.invalidToken));
     }
-    console.log("3");
     
     // Todo: token expiry
     const userId = tokenDocument.user;
-    console.log(userId);
-
-    console.log("4");
     
     let user = await UserModel.duciFindById(req, userId, '+password');
 
     if (!user) {
-        return Promise.reject("User not found");
+        return Promise.reject(new DuciError(errorTypes.notFound, "User was"));
     }
 
     user.password = newPassword;
-    console.log("4.5");
     await UserModel.duciSave(req, user);
-
-    console.log("5");
 
     return await PasswordResetTokenModel.findByIdAndRemove(tokenDocument.id, (err, user) => {if(err) return null});
 
@@ -121,13 +110,12 @@ export async function resetPassword(req){
 export async function logout(req){
 
     const token = req.headers.authorization ? req.headers.authorization.replace('Bearer ', '') : undefined;
-    if (!token) return Promise.reject("missing jwt token");
+    if (!token) return Promise.reject(new SquizError(errorTypes.unauthorised.missingToken));
 
     let session = await SessionModel.duciFindOne(req, {token: token}, 'user');
     if (!session) {
-        return Promise.reject("invalid session token");
+        return Promise.reject(new SquizError(errorTypes.unauthorised.invalidToken));
     }
-    console.log(session.createdAt);
     
     // Create a new session archive
     await SessionArchiveModel.duciCreate(req, {
