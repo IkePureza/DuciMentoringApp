@@ -8,7 +8,8 @@ import * as jwtHelper from '../util/jwtHelper';
 import Moment from 'moment';
 import DuciError from '../util/api/duciError';
 //const DuciError = require('../util/api/duciError');
-import * as errorTypes from '../util/constants/errorTypes';
+import ERROR_TYPES from '../util/constants/errorTypes';
+let errorTypes = ERROR_TYPES;
 
 
 export async function login(req){    
@@ -18,12 +19,12 @@ export async function login(req){
     const user = await UserModel.duciFindOne(req, {email}, '_id email +password');
     console.log(errorTypes);
 
-    if (!user) return  Promise.reject(new DuciError(errorTypes.notFound, "this email"));
+    if (!user) return  Promise.reject(new DuciError(errorTypes.notFound, "This email was"));
     
     const result = await user.comparePassword(password);
 
     if (result.err || !result.isMatch) {
-        return Promise.reject("wrong credidantials");
+        return Promise.reject(new DuciError(errorTypes.unauthorised.wrongCredentials));
     }
 
     const token = jwtHelper.generateJWT(req, user, remember ? '7 days' : '2 hours');
