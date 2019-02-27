@@ -1,4 +1,4 @@
-export const ERROR_TYPES = {
+const ERROR_TYPES = {
     badRequest: {
         unknown: 'badRequest',
         missingField: 'missingField',
@@ -10,6 +10,13 @@ export const ERROR_TYPES = {
         invalidToken: 'invalidToken',
         missingToken: 'missingToken',
     },
+    forbidden: {
+        forbidden: 'forbidden',
+        noClearance: 'noClearance',
+        noWritePrivilege: 'noWritePrivilege',
+    },
     notFound: 'notFound',
     internalServerError: 'internalServerError',
 };
+
+export default ERROR_TYPES;
